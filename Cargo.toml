@@ -1,0 +1,10 @@
+[package]
+name = "rustat"
+version = "0.1.0"
+authors = ['Byron Howe']
+edition = "2021"
+license = 'MIT'
+
+[lib]
+name = 'rustat'
+path = 'src/lib.rs'
