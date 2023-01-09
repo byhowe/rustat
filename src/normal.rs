@@ -18,7 +18,7 @@ impl Normal
         }
     }
 
-    pub const fn value(&self, x: f32) -> f32
+    pub fn value(&self, x: f32) -> f32
     {
         (-(x - self.mu).powi(2) / (2.0 * self.sigma.powi(2))).exp() / (self.sigma * TAU.sqrt())
     }
