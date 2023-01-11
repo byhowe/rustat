@@ -1,5 +1,6 @@
 use std::f64::consts::SQRT_2;
 use std::f64::consts::TAU;
+use std::fmt::Display;
 use std::ops::Bound;
 use std::ops::RangeBounds;
 
@@ -12,41 +13,82 @@ pub struct Normal
     sigma: f64,
 }
 
+impl Display for Normal
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+    {
+        write!(f, "N(μ={}, σ={})", self.mu(), self.sigma())
+    }
+}
+
 impl Normal
 {
-    /// Standard normal distribution with mu=0 and sigma=1.
+    /// Normal distribution with μ and σ.
+    ///
+    /// - `mu` is the location of the normal distribution graph along the
+    ///   x-axis.
+    /// - `sigma` is the standard deviation of the normal distribution graph.
+    ///   Standard deviation cannot be negative. Absolute value of the sigma is
+    ///   used.
+    pub const fn new(mu: f64, sigma: f64) -> Self
+    {
+        Self { mu, sigma }
+    }
+
+    /// Standard normal distribution with μ=0 and σ=1.
     pub const fn standard() -> Self
     {
-        Self {
-            mu: 0.0,
-            sigma: 1.0,
+        Self::new(0.0, 1.0)
+    }
+
+    pub fn mu(&self) -> f64
+    {
+        self.mu
+    }
+
+    pub fn sigma(&self) -> f64
+    {
+        self.sigma.abs()
+    }
+
+    /// Cumulative distribution function of the normal distribution.
+    ///
+    /// Returns the area under the normal distribution graph from -∞ to `x`.
+    pub fn cdf(&self, x: f64) -> f64
+    {
+        if x.is_infinite() & x.is_sign_negative() {
+            0.0
+        } else if x.is_infinite() & x.is_sign_positive() {
+            1.0
+        } else if x.is_finite() {
+            0.5 * (1.0 + erf((x - self.mu) / (self.sigma() * SQRT_2)))
+        } else {
+            f64::NAN
         }
     }
 
-    pub fn cdf(&self, x: f64) -> f64
-    {
-        0.5 * (1.0 + erf((x - self.mu) / (self.sigma * SQRT_2)))
-    }
-
+    /// The area under the graph of the normal distribution within the given
+    /// range.
     pub fn p<R: RangeBounds<f64>>(&self, interval: R) -> f64
     {
         let e = match interval.end_bound() {
-            Bound::Excluded(x) | Bound::Included(x) => Some(*x),
-            _ => None,
+            Bound::Excluded(x) | Bound::Included(x) => *x,
+            _ => f64::INFINITY,
         };
         let s = match interval.start_bound() {
-            Bound::Excluded(x) | Bound::Included(x) => Some(*x),
-            _ => None,
+            Bound::Excluded(x) | Bound::Included(x) => *x,
+            _ => f64::NEG_INFINITY,
         };
-        let upper = if let Some(x) = e { self.cdf(x) } else { 1.0 };
-        let lower = if let Some(x) = s { self.cdf(x) } else { 0.0 };
 
-        upper - lower
+        self.cdf(e) - self.cdf(s)
     }
 
+    /// Probability density function of the normal distribution.
+    ///
+    /// The value of the graph at `x`.
     pub fn pdf(&self, x: f64) -> f64
     {
-        (-(x - self.mu).powi(2) / (2.0 * self.sigma.powi(2))).exp() / (self.sigma * TAU.sqrt())
+        (-(x - self.mu).powi(2) / (2.0 * self.sigma().powi(2))).exp() / (self.sigma() * TAU.sqrt())
     }
 }
 
