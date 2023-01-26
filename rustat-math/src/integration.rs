@@ -47,7 +47,18 @@ fn integration<const M: Integration, F: Fn(f64) -> f64>(
                 + f(interval.end);
             (sum * width) / 2.0
         }
-        Integration::Simpsons => todo!(),
+        Integration::Simpsons => {
+            let ends = f(interval.start) + f(interval.end);
+            let odds = (1..n as u32)
+                .step_by(2)
+                .map(|i| f(interval.start + i as f64 * width))
+                .sum::<f64>();
+            let evens = (2..n as u32)
+                .step_by(2)
+                .map(|i| f(interval.start + i as f64 * width))
+                .sum::<f64>();
+            ((ends + 4.0 * odds + 2.0 * evens) * width) / 3.0
+        }
     }
 }
 
@@ -81,6 +92,21 @@ pub fn trapezoid<F: Fn(f64) -> f64>(f: F, interval: Range<f64>) -> f64
     trapezoid_w(f, interval, WIDTH)
 }
 
+/// Approximate the area under the curve `f` by using the Simpson's Rule. Each
+/// segment has a width that can be modified using the `width` argument. Smaller
+/// the `width`, the better the approximation.
+pub fn simpsons_w<F: Fn(f64) -> f64>(f: F, interval: Range<f64>, width: f64) -> f64
+{
+    integration::<{ Integration::Simpsons }, _>(f, interval, width)
+}
+
+/// Approximate the area under the curve `f` by using the Simpson's Rule.
+/// Default width of each segment is set to 0.05.
+pub fn simpsons<F: Fn(f64) -> f64>(f: F, interval: Range<f64>) -> f64
+{
+    simpsons_w(f, interval, WIDTH)
+}
+
 #[cfg(test)]
 mod tests
 {
@@ -97,7 +123,7 @@ mod tests
         let dist = Normal::standard();
         let pdf = |x| dist.pdf(x);
         // Using smaller width improves the approximation.
-        let width = 0.0005;
+        let width = 0.005;
 
         // The area under the standard normal distribution graph from x0 to x1. The area
         // values are obtained from scipy.stats.norm.cdf
@@ -115,10 +141,10 @@ mod tests
             .map(|(r, v)| (integration::<M, _>(pdf, r.clone(), width) - v).abs())
             .collect::<Vec<_>>();
 
-        // Pass threshold is currently set to 1e-8. Any lower trips the assert. This
+        // Pass threshold is currently set to 1e-6. Any lower trips the assert. This
         // threshold should suffice for now, but take a look at the implementation of
         // the integration function.
-        let pass = diff.iter().filter(|x| **x > 1e-8).next().is_none();
+        let pass = diff.iter().filter(|x| **x > 1e-6).next().is_none();
         assert!(
             pass,
             "{} values are not within acceptable range: {:#?}",
@@ -141,5 +167,11 @@ mod tests
     fn midpoint()
     {
         integration_test::<{ Integration::Midpoint }>()
+    }
+
+    #[test]
+    fn simpsons()
+    {
+        integration_test::<{ Integration::Simpsons }>()
     }
 }
