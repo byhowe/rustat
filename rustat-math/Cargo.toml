@@ -9,3 +9,6 @@ workspace = '..'
 [lib]
 name = 'rustat_math'
 path = 'src/lib.rs'
+
+[dev-dependencies]
+rustat = { version='0.1', path='../rustat' }
