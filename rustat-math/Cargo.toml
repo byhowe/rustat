@@ -1,5 +1,5 @@
 [package]
-name = "rustat"
+name = "rustat-math"
 version = "0.1.0"
 authors = ['Byron Howe']
 edition = "2021"
@@ -7,8 +7,5 @@ license = 'MIT'
 workspace = '..'
 
 [lib]
-name = 'rustat'
+name = 'rustat_math'
 path = 'src/lib.rs'
-
-[dependencies]
-rustat-math = { version='0.1', path='../rustat-math' }

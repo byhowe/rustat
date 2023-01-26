@@ -4,7 +4,7 @@ use std::fmt::Display;
 use std::ops::Bound;
 use std::ops::RangeBounds;
 
-use crate::erf::erf;
+use rustat_math::erf::erf;
 
 #[derive(Debug)]
 pub struct Normal

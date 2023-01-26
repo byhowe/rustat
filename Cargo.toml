@@ -1,6 +1,7 @@
 [workspace]
 members = [
   'rustat',
+  'rustat-math',
   'py-rustat',
 ]
 
