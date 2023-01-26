@@ -7,7 +7,7 @@ pub fn erf(x: f64) -> f64
 {
     let t = 1.0 / (1.0 + P * x.abs());
     let y = 1.0 - (A1 * t + A2 * t.powi(2) + A3 * t.powi(3)) * (-x.powi(2)).exp();
-    if x >= 0.0 {
+    if x.is_sign_positive() {
         y
     } else {
         -y
